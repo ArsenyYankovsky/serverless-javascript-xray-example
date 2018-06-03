@@ -1,0 +1,34 @@
+service: xray-js
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource:
+        - "*"
+
+    - Effect: "Allow"
+      Action:
+        - "logs:*"
+      Resource:
+        - "*"
+
+plugins:
+  - serverless-webpack
+
+custom:
+  webpackIncludeModules: true
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: api/hello
+          method: get
+          integration: lambda
+          cors: true
