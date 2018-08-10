@@ -24,7 +24,7 @@ const fetchData = async (segment) => {
   return asyncSubsegment('Unreliable Function', segment, unreliableFunction)
 }
 
-export const hello = async () => {
+export const hello = async (event, context, callback) => {
   const segment = new AWSXRay.Segment('hello function')
 
   try {
