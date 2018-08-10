@@ -2,10 +2,8 @@ import AWSXRay from 'aws-xray-sdk-core'
 
 import { slowFunction, fasterFunction, unreliableFunction } from './functions'
 
-AWSXRay.enableManualMode()
-
-const asyncSubsegment = async (name, parent, fn) => {
-  const subsegment = parent.addNewSubsegment(name)
+const asyncSubsegment = async (name, fn) => {
+  const subsegment = AWSXRay.getSegment().addNewSubsegment(name)
   try {
     return await fn()
   } catch (e) {
@@ -16,24 +14,15 @@ const asyncSubsegment = async (name, parent, fn) => {
   }
 }
 
-const fetchData = async (segment) => {
-  await asyncSubsegment('Slow Function', segment, slowFunction)
+const fetchData = async () => {
+  await asyncSubsegment('Slow Function', slowFunction)
 
-  await asyncSubsegment('Faster Function', segment, fasterFunction)
+  await asyncSubsegment('Faster Function', fasterFunction)
 
-  return asyncSubsegment('Unreliable Function', segment, unreliableFunction)
+  return asyncSubsegment('Unreliable Function', unreliableFunction)
 }
 
 export const hello = async (event, context, callback) => {
-  const segment = new AWSXRay.Segment('hello function')
-
-  try {
-    const data = await fetchData(segment)
-    callback(null, data)
-  } catch(err) {
-    segment.addError(err)
-    callback(err)
-  } finally {
-    segment.close()
-  }
+  const data = await fetchData()
+  callback(null, data)
 }
